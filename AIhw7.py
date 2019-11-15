@@ -18,7 +18,7 @@ def pull_data():
         if(temp): data.append(temp)
     return(data)
 
-def get_matrix(data, attrs): 
+def get_matrix(data, attrs):
     i = len(data) - 1
     sum = 0
     for x in range(len(data['weather'])):
@@ -46,7 +46,8 @@ def get_matrix(data, attrs):
     for x in range(len(trans_matrix)):
         temp_string += attrs[x]
         for y in trans_matrix[x]:
-            temp_string = temp_string + "&" +  str(y)
+            rounded = round(y,2)
+            temp_string = temp_string + "&" +  str(rounded)
         print(temp_string, "\\\\\\hline")
         temp_string = ""
     for x in counts:
@@ -62,7 +63,7 @@ def matrix_mult(x,y,matrix):
     for x in range(len(matrix)):
         sum += xarr[x] * yarr[x]
     return sum
-def matrix_loop(x, matrix):
+def matrix_loop(x, matrix, attrs):
     probs = []
     xarr = matrix[x]
     for y in range(len(matrix)):
@@ -71,6 +72,23 @@ def matrix_loop(x, matrix):
         for x in range(len(matrix)):
             sum += xarr[x] * yarr[x]
         probs.append(sum)
+    title_str = "\\begin{tabular}{1|"
+    for x in matrix:
+        title_str += "1|"
+    title_str += "} \\hline "
+    title_str += "\n$X_{t}$ \\textbackslash\\  $Y_{t}$"
+    for x in attrs:
+        title_str +=("&" + x)
+    title_str+= "\\\\\\hline"
+    table_str = ""
+    table_str += (attrs[2])
+    for x in range(len(probs)):
+        rounded = round(probs[x],2)
+        table_str += ("&" +str(rounded))
+    table_str += ("\\\\\\hline \n")
+    print("~PREDICTION TABLE~\n",title_str, '\n', table_str)
+    return probs
+
     return probs
 def hidden_mark(data):
     weatherS = data.weather.unique()
@@ -88,9 +106,24 @@ def hidden_mark(data):
         probs[x1][y1] += 1
     sum = 0
     for x in probs:
-        for y in x:
-            sum += y
-    print(sum)
+        for y in range(len(x)):
+            x[y] /= 70
+    tab_str = "\\begin{tabular}{1|"
+    for x in dewS:
+        tab_str += "1|"
+    tab_str += "} \\hline "
+    title_str = "$X_{t}$ \\textbackslash\\  $Y_{t}$"
+    for x in dewS:
+        title_str+= ("&" + x)
+    title_str += "\\\\\\hline"
+    table_str = ""
+    for x in range(len(probs)):
+        table_str += (weatherS[x])
+        for y in range(len(probs[x])):
+            rounded = round(probs[x][y],2)
+            table_str += ("&" +str(rounded))
+        table_str += ("\\\\\\hline \n")
+    print(tab_str, '\n', title_str, '\n', table_str)
 
 
 def main():
@@ -100,10 +133,12 @@ def main():
             ,'hum','wind chill','heat','alt','sea level','1hr','3hr','6hr']
     frame.drop(frame.tail(2).index,inplace=True)
     matrix = get_matrix(frame, frame.weather.unique())
-    print(matrix_mult(2,2,matrix))
-    prob = np.asarray(matrix_loop(2,matrix))
-    get_marg(prob, matrix)
-    hidden_mark(frame)
+    #(matrix_mult(2,2,matrix))
+    prob = np.asarray(matrix_loop(2,matrix,frame.weather.unique()))
+    #get_marg(prob, matrix)
+    #hidden_mark(frame)
 
 if __name__== "__main__":
   main()
+
+  
